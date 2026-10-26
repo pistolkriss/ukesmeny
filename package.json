@@ -1,0 +1,7 @@
+{
+  "name": "ukesmeny",
+  "private": true,
+  "type": "module",
+  "description": "Ukesmeny med oppskrifter og priser fra Oda, hostet på Vercel",
+  "engines": { "node": ">=20" }
+}

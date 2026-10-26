@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ukesmeny</title>
+<meta name="description" content="Ukesmeny med oppskrifter og priser fra Oda.">
+<meta name="theme-color" content="#F3F6EF">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232F6B4E'/><text x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='Georgia'>U</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#F3F6EF; --surface:#FFFFFF; --surface-2:#E8ECE0; --border:#D8DECB; --border-strong:#C3CBB3;
+    --text:#212B1D; --muted:#5B6552; --faint:#8A9280;
+    --accent:#2F6B4E; --accent-strong:#1F5038; --accent-contrast:#FBFDF8; --accent-soft:#DEEBDD;
+    --warn:#B8791E; --critical:#BB4430; --good:#2F8F5B;
+    --shadow:0 1px 2px rgba(33,43,29,.06), 0 6px 20px -8px rgba(33,43,29,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#161C14; --surface:#1D2419; --surface-2:#242C1E; --border:#39422F; --border-strong:#4A5540;
+      --text:#EAEFE2; --muted:#AAB49B; --faint:#7C876F;
+      --accent:#6FBE93; --accent-strong:#8ED0AA; --accent-contrast:#0F1710; --accent-soft:#28352A;
+      --warn:#E0AC5C; --critical:#E28879; --good:#6FBE93;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -10px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161C14; --surface:#1D2419; --surface-2:#242C1E; --border:#39422F; --border-strong:#4A5540;
+    --text:#EAEFE2; --muted:#AAB49B; --faint:#7C876F;
+    --accent:#6FBE93; --accent-strong:#8ED0AA; --accent-contrast:#0F1710; --accent-soft:#28352A;
+    --warn:#E0AC5C; --critical:#E28879; --good:#6FBE93;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 'Public Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  h1,h2{font-family:'Fraunces',Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0}
+  a{color:inherit}
+  button{font:inherit;color:inherit}
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .bar{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .bar h1{font-size:1.3rem;flex:1}
+  .weeknav{display:flex;align-items:center;gap:4px}
+  .weeknav span{min-width:74px;text-align:center;font-size:.9rem}
+  .icon{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+  .icon:hover{background:var(--surface-2)}
+
+  main{max-width:1080px;margin:0 auto;padding:16px 16px 60px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
+  main>*{min-width:0}
+  @media (max-width:820px){main{grid-template-columns:1fr}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .head h2{font-size:1.1rem}
+  .sub{color:var(--faint);font-size:.8rem}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  .btn{border:1px solid var(--border-strong);background:var(--surface);padding:8px 14px;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-contrast)}
+  .btn.primary:hover{background:var(--accent-strong)}
+  .btn.ghost{border-color:transparent;background:transparent}
+  .btn.small{padding:4px 10px;font-size:.78rem;border-radius:8px}
+  .btn:disabled{opacity:.55;cursor:default}
+  .spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .budget{margin:0 0 16px;grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+  .meter{flex:1;min-width:140px;height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+  .meter i{display:block;height:100%;background:var(--good);border-radius:99px;transition:width .3s}
+
+  .days{display:flex;flex-direction:column;gap:10px}
+  .day{border:1px solid var(--border);border-radius:12px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:12px}
+  .day img{width:64px;height:64px;border-radius:9px;object-fit:cover;background:var(--surface-2)}
+  .dayname{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+  .title{font-weight:700;line-height:1.3;text-decoration:none}
+  .title:hover{text-decoration:underline}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--faint);font-size:.78rem;margin-top:2px}
+  .meta .grow{flex:1}
+  details{margin-top:6px}
+  summary{cursor:pointer;color:var(--muted);font-size:.8rem}
+  .ings{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;font-size:.82rem;color:var(--muted)}
+  .ings li{display:flex;justify-content:space-between;gap:8px}
+  .ings .q{color:var(--faint);white-space:nowrap}
+  @media (max-width:520px){.ings{grid-template-columns:1fr}}
+  ol.steps{margin:6px 0 0;padding-left:20px;font-size:.85rem;display:flex;flex-direction:column;gap:5px}
+  .empty{text-align:center;padding:36px 12px;color:var(--faint);border:1.5px dashed var(--border-strong);border-radius:12px}
+
+  .list h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:16px 0 4px;font-weight:700}
+  .list h3:first-child{margin-top:0}
+  .row{display:flex;align-items:baseline;gap:8px;padding:4px 0;font-size:.87rem}
+  .row input{accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;transform:translateY(2px)}
+  .row label{flex:1;min-width:0;cursor:pointer}
+  .row .x{color:var(--faint);font-size:.76rem}
+  .row .p{white-space:nowrap}
+  .row.done label,.row.done .p{color:var(--faint);text-decoration:line-through}
+  .sale{color:var(--critical);font-size:.72rem;font-weight:600}
+  .total{display:flex;justify-content:space-between;border-top:1px solid var(--border-strong);margin-top:12px;padding-top:10px;font-weight:700}
+
+  .status{font-size:.78rem;color:var(--faint)}
+  .status.saved{color:var(--good)}
+  .err{background:color-mix(in srgb,var(--critical) 12%,var(--surface));border:1px solid var(--critical);color:var(--text);border-radius:10px;padding:10px 12px;font-size:.85rem;margin-bottom:12px}
+
+  dialog{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--text);padding:20px;width:min(420px,calc(100vw - 32px));box-shadow:var(--shadow)}
+  dialog::backdrop{background:rgba(20,25,17,.45)}
+  .field{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+  .field input{width:110px;text-align:right;border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--surface);color:var(--text);font:inherit}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Ukesmeny</h1>
+    <div class="weeknav">
+      <button class="icon" id="prev" aria-label="Forrige uke">‹</button>
+      <span class="num" id="weekLabel">uke –</span>
+      <button class="icon" id="next" aria-label="Neste uke">›</button>
+    </div>
+    <button class="icon" id="openSettings" aria-label="Innstillinger">⚙</button>
+  </div>
+</header>
+
+<main>
+  <div class="budget">
+    <span id="budgetText">–</span>
+    <div class="meter"><i id="budgetBar" style="width:0"></i></div>
+  </div>
+
+  <section class="panel">
+    <div class="head">
+      <div>
+        <h2>Middager</h2>
+        <div class="sub" id="menuSub">–</div>
+      </div>
+      <div class="actions">
+        <span class="status" id="saveStatus"></span>
+        <button class="btn" id="saveBtn" hidden>Lagre meny</button>
+        <button class="btn primary" id="genBtn">Generer ukesmeny</button>
+      </div>
+    </div>
+    <div id="error" class="err" hidden></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <section class="panel">
+    <div class="head">
+      <div>
+        <h2>Handleliste</h2>
+        <div class="sub" id="listSub">priser fra Oda</div>
+      </div>
+      <div class="actions">
+        <button class="btn small ghost" id="refreshBtn" hidden>Oppdater priser</button>
+        <button class="btn small ghost" id="copyBtn" hidden>Kopier</button>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2 style="font-size:1.15rem;margin-bottom:8px">Innstillinger</h2>
+    <div class="field"><label for="sPeople">Antall personer</label><input id="sPeople" type="number" min="1" max="10"></div>
+    <div class="field"><label for="sDinners">Middager per uke</label><input id="sDinners" type="number" min="1" max="7"></div>
+    <div class="field"><label for="sBudget">Matbudsjett per måned (kr)</label><input id="sBudget" type="number" min="0" step="100"></div>
+    <p class="sub" id="sWeekly"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn ghost" value="cancel">Avbryt</button>
+      <button class="btn primary" value="save" id="saveSettings">Lagre</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+
+const DAYS = ["Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag","Søndag"];
+const $ = (id) => document.getElementById(id);
+const kr = (n) => Math.round(n).toLocaleString("nb-NO") + " kr";
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let settings = { people: 2, dinners: 5, monthlyBudget: 5000 };
+let saved = {};          // uke -> lagret meny (fra serveren)
+let week = isoWeek(new Date());
+let busy = false;
+let storageOk = true;
+
+/* ---------- Uker ---------- */
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = (t.getUTCDay() + 6) % 7;
+  t.setUTCDate(t.getUTCDate() - day + 3);
+  const jan4 = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const w = 1 + Math.round(((t - jan4) / 864e5 - 3 + ((jan4.getUTCDay() + 6) % 7)) / 7);
+  return `${t.getUTCFullYear()}-W${String(w).padStart(2, "0")}`;
+}
+function monday(id) {
+  const [y, w] = id.split("-W").map(Number);
+  const jan4 = new Date(Date.UTC(y, 0, 4));
+  const m = new Date(jan4);
+  m.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + (w - 1) * 7);
+  return m;
+}
+function shiftWeek(id, n) { const m = monday(id); m.setUTCDate(m.getUTCDate() + 7 * n + 3); return isoWeek(new Date(m.getUTCFullYear(), m.getUTCMonth(), m.getUTCDate())); }
+const weekNo = (id) => Number(id.split("-W")[1]);
+
+/* ---------- Lokale utkast (ulagrede menyer) ---------- */
+const draftKey = (w) => "ukesmeny:draft:" + w;
+function getDraft(w) { try { return JSON.parse(localStorage.getItem(draftKey(w)) || "null"); } catch { return null; } }
+function setDraft(w, m) { try { m ? localStorage.setItem(draftKey(w), JSON.stringify(m)) : localStorage.removeItem(draftKey(w)); } catch {} }
+function currentMenu() { return getDraft(week) || saved[week] || null; }
+const isDraft = () => !!getDraft(week);
+
+/* ---------- API ---------- */
+async function api(path, opts = {}) {
+  let pin = ""; try { pin = localStorage.getItem("ukesmeny:pin") || ""; } catch {}
+  const res = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", "x-app-pin": pin, ...(opts.headers || {}) } });
+  if (res.status === 401) {
+    const p = prompt("Skriv inn PIN for ukesmenyen");
+    if (p == null) throw new Error("PIN mangler");
+    try { localStorage.setItem("ukesmeny:pin", p); } catch {}
+    return api(path, opts);
+  }
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(json.error || `Feil ${res.status}`), { status: res.status });
+  return json;
+}
+
+/* ---------- Beregning ---------- */
+// Handleliste for en meny: summerer andel-av-pakke per Oda-produkt på tvers av
+// alle middager og runder opp til hele pakker. Felles varer deles dermed mellom
+// rettene, og det som blir til overs vises som «rester».
+function shopping(recipes, people) {
+  const items = new Map(), basics = new Map();
+  for (const r of recipes) {
+    for (const ing of r.ingredients) {
+      if (ing.basic || !ing.product) { basics.set(ing.title.toLowerCase(), ing.title); continue; }
+      const p = ing.product;
+      const it = items.get(p.id) || { ...p, need: 0, used: [] };
+      it.need += p.perPortion * people;
+      if (!it.used.includes(r.title)) it.used.push(r.title);
+      items.set(p.id, it);
+    }
+  }
+  let total = 0, waste = 0;
+  const list = [...items.values()].map((it) => {
+    const packs = Math.max(1, Math.ceil(it.need - 0.02));
+    const cost = packs * it.price;
+    total += cost;
+    waste += Math.max(0, packs - it.need) * it.price;
+    return { ...it, packs, cost };
+  }).sort((a, b) => a.name.localeCompare(b.name, "nb"));
+  return { list, basics: [...basics.values()].sort((a, b) => a.localeCompare(b, "nb")), total, waste };
+}
+const recipeCost = (r, people) => r.ingredients.reduce((s, i) => s + (!i.basic && i.product ? i.product.perPortion * people * i.product.price : 0), 0);
+const weeklyBudget = () => settings.monthlyBudget * 12 / 52;
+
+// Poengsum for en ukesmeny (lavere er bedre): minst mulig rester,
+// innenfor ukebudsjettet, og helst ikke samme hovedråvare flere dager.
+function score(recipes) {
+  const s = shopping(recipes, settings.people);
+  const over = Math.max(0, s.total - weeklyBudget());
+  let dup = 0; const seen = {};
+  for (const r of recipes) for (const m of r.main || []) { if (seen[m]) dup++; seen[m] = 1; }
+  return s.waste + s.total * 0.15 + over * 3 + dup * 40;
+}
+function* combos(n, k, start = 0, acc = []) {
+  if (acc.length === k) { yield acc.slice(); return; }
+  for (let i = start; i <= n - (k - acc.length); i++) { acc.push(i); yield* combos(n, k, i + 1, acc); acc.pop(); }
+}
+function bestWeek(cands, k) {
+  let best = null, bestScore = Infinity;
+  for (const idx of combos(cands.length, Math.min(k, cands.length))) {
+    const pick = idx.map((i) => cands[i]);
+    const sc = score(pick);
+    if (sc < bestScore) { bestScore = sc; best = pick; }
+  }
+  // stokk rekkefølgen så like typer ikke havner på samme ukedag hver gang
+  return best.sort(() => Math.random() - 0.5);
+}
+function recentIds() {
+  const ids = new Set();
+  for (let i = -3; i <= 0; i++) {
+    const m = saved[shiftWeek(week, i)];
+    if (m && i !== 0) m.recipes.forEach((r) => ids.add(r.id));
+  }
+  return [...ids];
+}
+
+/* ---------- Handlinger ---------- */
+function setBusy(btn, on, label) {
+  busy = on;
+  btn.disabled = on;
+  btn.innerHTML = on ? `<span class="spinner"></span>${label}` : btn.dataset.label;
+}
+function showError(msg) { const e = $("error"); e.textContent = msg || ""; e.hidden = !msg; }
+
+async function generate() {
+  if (busy) return;
+  const btn = $("genBtn");
+  const n = settings.dinners;
+  setBusy(btn, true, "Henter fra Oda …");
+  showError("");
+  try {
+    const count = Math.min(21, n * 3);
+    const { recipes } = await api(`/api/recipes?count=${count}&exclude=${recentIds().join(",")}`);
+    const chosen = bestWeek(recipes, n);
+    saveDraft({ recipes: chosen, people: settings.people, checked: {} });
+    toast("Ny ukesmeny – trykk «Lagre meny» for å beholde den");
+  } catch (e) {
+    showError("Klarte ikke å hente oppskrifter fra Oda: " + e.message);
+  } finally { setBusy(btn, false); }
+}
+
+async function swap(index) {
+  if (busy) return;
+  const menu = currentMenu(); if (!menu) return;
+  const btn = document.querySelector(`[data-swap="${index}"]`);
+  setBusy(btn, true, "");
+  showError("");
+  try {
+    const exclude = [...menu.recipes.map((r) => r.id), ...recentIds()];
+    const { recipes } = await api(`/api/recipes?count=6&exclude=${exclude.join(",")}`);
+    let best = null, bestScore = Infinity;
+    for (const c of recipes) {
+      const trial = menu.recipes.slice(); trial[index] = c;
+      const sc = score(trial);
+      if (sc < bestScore) { bestScore = sc; best = trial; }
+    }
+    if (best) saveDraft({ ...menu, recipes: best });
+  } catch (e) {
+    showError("Klarte ikke å bytte middag: " + e.message);
+  } finally { busy = false; render(); }
+}
+
+async function refreshPrices() {
+  if (busy) return;
+  const menu = currentMenu(); if (!menu) return;
+  const btn = $("refreshBtn");
+  setBusy(btn, true, "Oppdaterer …");
+  try {
+    const { recipes } = await api(`/api/recipes?ids=${menu.recipes.map((r) => r.id).join(",")}`);
+    const byId = new Map(recipes.map((r) => [r.id, r]));
+    const updated = { ...menu, recipes: menu.recipes.map((r) => byId.get(r.id) || r) };
+    if (isDraft()) saveDraft(updated); else await persist(updated);
+    toast("Prisene er oppdatert");
+  } catch (e) {
+    showError("Klarte ikke å oppdatere priser: " + e.message);
+  } finally { setBusy(btn, false); render(); }
+}
+
+function saveDraft(menu) {
+  menu.total = shopping(menu.recipes, menu.people).total;
+  setDraft(week, menu);
+  render();
+}
+
+async function persist(menu) {
+  menu.total = shopping(menu.recipes, menu.people).total;
+  menu.savedAt = new Date().toISOString();
+  await api("/api/data", { method: "PUT", body: JSON.stringify({ week, menu }) });
+  saved[week] = menu;
+}
+
+async function saveMenu() {
+  const menu = getDraft(week); if (!menu) return;
+  const btn = $("saveBtn");
+  setBusy(btn, true, "Lagrer …");
+  try {
+    await persist(menu);
+    setDraft(week, null);
+    toast("Menyen er lagret");
+  } catch (e) {
+    showError("Klarte ikke å lagre: " + e.message);
+  } finally { setBusy(btn, false); render(); }
+}
+
+let checkTimer = null;
+function toggleCheck(pid, on) {
+  const menu = currentMenu(); if (!menu) return;
+  const updated = { ...menu, checked: { ...(menu.checked || {}), [pid]: on } };
+  if (isDraft()) { setDraft(week, updated); render(); return; }
+  saved[week] = updated; render();
+  clearTimeout(checkTimer);
+  const w = week;
+  checkTimer = setTimeout(() => api("/api/data", { method: "PUT", body: JSON.stringify({ week: w, menu: saved[w] }) }).catch(() => {}), 600);
+}
+
+async function copyList() {
+  const menu = currentMenu(); if (!menu) return;
+  const s = shopping(menu.recipes, menu.people);
+  const lines = [`Handleliste uke ${weekNo(week)}`, ""];
+  s.list.forEach((it) => lines.push(`${(menu.checked || {})[it.id] ? "✓" : "–"} ${it.packs} × ${it.name}${it.extra ? " (" + it.extra + ")" : ""}`));
+  if (s.basics.length) { lines.push("", "Sjekk at du har: " + s.basics.join(", ")); }
+  lines.push("", `Totalt ca. ${kr(s.total)}`);
+  try { await navigator.clipboard.writeText(lines.join("\n")); toast("Handlelisten er kopiert"); }
+  catch { toast("Kunne ikke kopiere"); }
+}
+
+/* ---------- Visning ---------- */
+function fmtAmount(a, unit) {
+  if (!a) return unit || "";
+  const r = a >= 10 ? Math.round(a) : Math.round(a * 10) / 10;
+  return `${String(r).replace(".", ",")} ${unit}`.trim();
+}
+
+function render() {
+  const menu = currentMenu();
+  const draft = isDraft();
+  $("weekLabel").textContent = `uke ${weekNo(week)}` + (saved[week] ? " •" : "");
+  $("weekLabel").title = saved[week] ? "Lagret meny" : "";
+
+  const people = menu ? menu.people : settings.people;
+  $("menuSub").textContent = menu ? `${menu.recipes.length} middager · ${people} personer` : `${settings.dinners} middager · ${settings.people} personer`;
+  $("saveBtn").hidden = !draft;
+  const st = $("saveStatus");
+  st.textContent = draft ? (saved[week] ? "endringer ikke lagret" : "ikke lagret") : (saved[week] ? "lagret" : "");
+  st.className = "status" + (!draft && saved[week] ? " saved" : "");
+  $("genBtn").dataset.label = menu ? "Ny ukesmeny" : "Generer ukesmeny";
+  if (!busy) $("genBtn").textContent = $("genBtn").dataset.label;
+
+  // Middager
+  const days = $("days");
+  if (!menu) {
+    days.innerHTML = `<div class="empty">Ingen meny for denne uken ennå.<br>Trykk «Generer ukesmeny» for å hente middager fra Oda.</div>`;
+  } else {
+    days.innerHTML = menu.recipes.map((r, i) => `
+      <article class="day">
+        ${r.image ? `<img src="${esc(r.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span></span>`}
+        <div>
+          <div class="dayname">${DAYS[i] || "Dag " + (i + 1)}</div>
+          <a class="title" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a>
+          <div class="meta">
+            ${r.durationText ? `<span>${esc(r.durationText)}</span>` : ""}
+            <span class="num">~${kr(recipeCost(r, people))}</span>
+            <span class="grow"></span>
+            <button class="btn small" data-swap="${i}" data-label="Bytt">Bytt</button>
+          </div>
+          <details>
+            <summary>Ingredienser og fremgangsmåte</summary>
+            <ul class="ings">${r.ingredients.map((g) => `<li><span>${esc(g.title)}</span><span class="q">${esc(fmtAmount(g.amount * people, g.unit))}</span></li>`).join("")}</ul>
+            ${r.steps.length ? `<ol class="steps">${r.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : ""}
+          </details>
+        </div>
+      </article>`).join("");
+  }
+
+  // Handleliste
+  const list = $("list");
+  $("refreshBtn").hidden = $("copyBtn").hidden = !menu;
+  if (!menu) {
+    list.innerHTML = `<div class="sub">Handlelisten lages når du har en meny.</div>`;
+    $("listSub").textContent = "priser fra Oda";
+  } else {
+    const s = shopping(menu.recipes, people);
+    const checked = menu.checked || {};
+    const fetched = menu.recipes.map((r) => r.fetchedAt).sort()[0];
+    $("listSub").textContent = fetched ? `Oda-priser per ${new Date(fetched).toLocaleDateString("nb-NO", { day: "numeric", month: "short" })}` : "priser fra Oda";
+    const over = s.total > weeklyBudget();
+    list.innerHTML = `
+      <h3>Varer</h3>
+      ${s.list.map((it) => `
+        <div class="row ${checked[it.id] ? "done" : ""}">
+          <input type="checkbox" id="c${it.id}" data-pid="${it.id}" ${checked[it.id] ? "checked" : ""}>
+          <label for="c${it.id}">${it.packs > 1 ? `<span class="num">${it.packs} ×</span> ` : ""}${esc(it.name)}
+            <span class="x">${esc(it.extra)}${it.price < it.regularPrice ? ` · <span class="sale">tilbud</span>` : ""}${!it.available ? ` · <span class="sale">utsolgt</span>` : ""}</span>
+            <br><span class="x">${esc(it.used.join(", "))}</span></label>
+          <span class="p num">${kr(it.cost)}</span>
+        </div>`).join("")}
+      ${s.basics.length ? `<h3>Sjekk at du har</h3><div class="sub">${s.basics.map(esc).join(", ")}</div>` : ""}
+      <div class="total"><span>Totalt</span><span class="num" style="color:${over ? "var(--critical)" : "var(--good)"}">${kr(s.total)}</span></div>
+      <div class="sub" style="margin-top:4px">Ukebudsjett ${kr(weeklyBudget())}${over ? " · over budsjett" : ""}${s.waste > 1 ? ` · ca. ${kr(s.waste)} i rester` : ""}</div>`;
+  }
+  renderBudget();
+}
+
+function renderBudget() {
+  const now = new Date();
+  let spent = 0;
+  for (const [w, m] of Object.entries(saved)) {
+    const d = monday(w);
+    if (d.getUTCFullYear() === now.getFullYear() && d.getUTCMonth() === now.getMonth()) spent += m.total || 0;
+  }
+  const b = settings.monthlyBudget || 0;
+  const frac = b ? spent / b : 0;
+  const month = now.toLocaleDateString("nb-NO", { month: "long" });
+  $("budgetText").innerHTML = `${month[0].toUpperCase() + month.slice(1)}: <span class="num">${kr(spent)}</span> av <span class="num">${kr(b)}</span> i lagrede menyer`;
+  const bar = $("budgetBar");
+  bar.style.width = Math.min(100, frac * 100) + "%";
+  bar.style.background = frac > 1 ? "var(--critical)" : frac > 0.85 ? "var(--warn)" : "var(--good)";
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ---------- Innstillinger ---------- */
+function openSettings() {
+  $("sPeople").value = settings.people;
+  $("sDinners").value = settings.dinners;
+  $("sBudget").value = settings.monthlyBudget;
+  $("sWeekly").textContent = `Ukebudsjett blir ${kr(weeklyBudget())} (måned × 12 / 52).`;
+  $("settings").showModal();
+}
+$("settings").addEventListener("close", async () => {
+  if ($("settings").returnValue !== "save") return;
+  settings = {
+    people: Math.min(10, Math.max(1, Number($("sPeople").value) || 2)),
+    dinners: Math.min(7, Math.max(1, Number($("sDinners").value) || 5)),
+    monthlyBudget: Math.max(0, Number($("sBudget").value) || 0),
+  };
+  try { localStorage.setItem("ukesmeny:settings", JSON.stringify(settings)); } catch {}
+  render();
+  if (storageOk) api("/api/data", { method: "PUT", body: JSON.stringify({ settings }) }).catch(() => {});
+  toast("Innstillinger lagret");
+});
+
+/* ---------- Oppstart ---------- */
+$("genBtn").dataset.label = "Generer ukesmeny";
+$("saveBtn").dataset.label = "Lagre meny";
+$("refreshBtn").dataset.label = "Oppdater priser";
+$("genBtn").onclick = generate;
+$("saveBtn").onclick = saveMenu;
+$("refreshBtn").onclick = refreshPrices;
+$("copyBtn").onclick = copyList;
+$("openSettings").onclick = openSettings;
+$("prev").onclick = () => { week = shiftWeek(week, -1); showError(""); render(); };
+$("next").onclick = () => { week = shiftWeek(week, 1); showError(""); render(); };
+$("days").addEventListener("click", (e) => { const b = e.target.closest("[data-swap]"); if (b) swap(Number(b.dataset.swap)); });
+$("list").addEventListener("change", (e) => { const c = e.target.closest("[data-pid]"); if (c) toggleCheck(Number(c.dataset.pid), c.checked); });
+
+try { const s = JSON.parse(localStorage.getItem("ukesmeny:settings") || "null"); if (s) settings = { ...settings, ...s }; } catch {}
+render();
+api("/api/data").then((d) => {
+  if (d.settings) settings = { ...settings, ...d.settings };
+  saved = d.menus || {};
+  render();
+}).catch((e) => {
+  storageOk = false;
+  if (e.status === 503) showError("Lagring er ikke satt opp ennå (Upstash Redis i Vercel). Du kan generere menyer, men ikke lagre dem.");
+});
+})();
+</script>
+</body>
+</html>
